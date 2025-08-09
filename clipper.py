@@ -77,7 +77,7 @@ ROOT = Path(__file__).resolve().parent
 BUFFER_DIR = ROOT / "buffer"
 CLIPS_DIR = ROOT / "clips"
 LOGS_DIR = ROOT / "logs"
-LOG_FILE = LOGS_DIR / "clipper.log"
+LOG_FILE = ROOT / "logs.txt"
 
 
 def setup_logging(verbose: bool = False) -> None:
@@ -98,6 +98,25 @@ def setup_logging(verbose: bool = False) -> None:
 
 
 def which_ffmpeg() -> Optional[str]:
+    """Locate ffmpeg.
+    Priority when frozen:
+      1) Next to the .exe
+      2) In PyInstaller temp (_MEIPASS)
+      3) PATH
+    """
+    try:
+        exe_dir = Path(sys.executable).parent if getattr(sys, "frozen", False) else ROOT
+        candidates = [
+            exe_dir / ("ffmpeg.exe" if platform.system().lower() == "windows" else "ffmpeg"),
+        ]
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            candidates.append(Path(meipass) / ("ffmpeg.exe" if platform.system().lower() == "windows" else "ffmpeg"))
+        for c in candidates:
+            if c and c.exists():
+                return str(c)
+    except Exception:
+        pass
     return shutil.which("ffmpeg")
 
 
@@ -606,6 +625,9 @@ def main() -> int:
         preset=args.preset,
         gop=max(30, int(args.framerate * 2)),  # ~2s GOP for smooth concatenation
     )
+
+    # Ensure clips/ exists on first launch (even before first save)
+    cfg.clips_dir.mkdir(parents=True, exist_ok=True)
 
     recorder = Recorder(cfg, region)
     assembler = ClipAssembler(cfg)

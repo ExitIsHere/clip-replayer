@@ -1,0 +1,7 @@
+keyboard>=0.13
+screeninfo>=0.8
+psutil>=5.9
+pynput>=1.7
+win10toast>=0.9
+pyinstaller>=6.6
+pytest>=8.0

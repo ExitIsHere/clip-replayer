@@ -100,13 +100,45 @@ pip install win10toast
 ```
 
 ## Logging
-Logs are written to `logs/clipper.log`.
+When packaged as a Windows .exe (no console), logs are written to `logs.txt` next to the executable.
+
+## Windows .exe Build (PyInstaller)
+Build a single-file, no-console executable in `dist/`:
+
+1) Install build deps:
+```bash
+python -m venv .venv
+. .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+2) (Optional) Place `ffmpeg.exe` at `vendor/ffmpeg/ffmpeg.exe` before building to embed it. Otherwise, after building, copy `ffmpeg.exe` next to the final `Clipper.exe`.
+
+3) Build using the provided spec (recommended):
+```bash
+pyinstaller clipper.spec
+```
+This produces `dist/Clipper/Clipper.exe`.
+
+- Alternative (simple flags):
+```bash
+pyinstaller --onefile --noconsole --name Clipper clipper.py
+```
+(Then manually place `ffmpeg.exe` next to `Clipper.exe`.)
+
+4) Run:
+- Double-click `dist/Clipper/Clipper.exe`
+- On first launch, `clips/` is created automatically. Press F4/F5 to save clips. Check `logs.txt` for errors.
+
+Notes:
+- Global hotkeys may require Administrator privileges to work in fullscreen games.
+- If FFmpeg isn’t found, put `ffmpeg.exe` alongside `Clipper.exe` or ensure it’s in PATH.
 
 ## Troubleshooting
-- "FFmpeg not found": Install FFmpeg and ensure `ffmpeg` is in your PATH. See Quick Start.
-- Hotkeys not firing in fullscreen: Run terminal as Administrator (Windows) or try `pynput`.
-- No segments appear: Security prompts (macOS) or capture flags may need adjustment.
-- Output won’t play: The tool retries with re-encode automatically; check logs.
+- "FFmpeg not found": Place `ffmpeg.exe` next to `Clipper.exe` or ensure PATH contains FFmpeg.
+- Hotkeys not firing in fullscreen: Run `Clipper.exe` as Administrator or try installing with `pynput`.
+- No segments appear: OS security prompts may block screen capture; adjust permissions.
+- Output won’t play: The tool retries with re-encode automatically; check `logs.txt`.
 
 ## Development & Tests
 - Single entry point: `clipper.py`
